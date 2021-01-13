@@ -22,10 +22,7 @@
  '(package-hidden-regexps (quote ("Haskell")))
  '(package-selected-packages
    (quote
-    (use-package org-bullets julia-mode transient-dwim magit
-    company-ghc company company-nand2tetris impatient-mode
-    blacken elpy sudo-edit dracula-theme haskell-mode websocket
-    markdown-preview-mode csv-mode ess monokai-theme))))
+    (js2-mode use-package org-bullets julia-mode transient-dwim magit company-ghc company company-nand2tetris impatient-mode blacken elpy sudo-edit dracula-theme haskell-mode websocket markdown-preview-mode csv-mode ess monokai-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -91,6 +88,7 @@
 ;; JavaScript
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (setq js-indent-level 2)
+(add-hook 'js-mode-hook 'js2-minor-mode)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
