@@ -1,4 +1,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Startup
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; The default is 800 kilobytes.  Measured in bytes.
+(setq gc-cons-threshold (* 50 1000 1000))
+
+;; Profile emacs startup
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "*** Emacs loaded in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Package management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'package)
@@ -68,8 +83,6 @@
 (global-set-key (kbd "C-c C-<down>")  'windmove-down)
 
 ;; use multi-term
-;;(require 'multi-term)
-;;(setq multi-term-program "/bin/bash")
 (use-package multi-term)
 
 ;; follow symlinks to version-controlled files
@@ -85,10 +98,11 @@
   :config
   (setq which-key-idel-delay 1))
 
-
 ;; counsel
 (use-package counsel)
 
+;; magit
+(use-package magit)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tex
@@ -126,6 +140,12 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Arduino
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package flycheck)
+(use-package arduino-mode)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Org Mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (global-set-key (kbd "C-c l") 'org-store-link)
@@ -137,7 +157,7 @@
 (use-package org-bullets
   :hook (org-mode . (lambda () (org-bullets-mode 1))))
 
-(setq org-ellipsis "  ▾"
+(setq org-ellipsis " ▾" ;;▼
       org-hide-emphasis-markers t)
 
 ;; custom org-mode todo-keywords
@@ -191,7 +211,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (counsel which-key js2-mode elpy markdown-mode use-package rainbow-delimiters multi-term dracula-theme))))
+    (magit flycheck arduino-mode counsel which-key js2-mode elpy markdown-mode use-package rainbow-delimiters multi-term dracula-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
