@@ -58,7 +58,7 @@
   (menu-bar-mode -1)
 
   ;; fringe?
-  (set-fringe-mode 10)
+  ;(set-fringe-mode 1)
 
   ;; induce seizures
   (setq visible-bell t)
@@ -71,11 +71,11 @@
     :hook (prog-mode . rainbow-delimiters-mode))
 
   ;; add line numbers, but disable for various shells
-  ;(global-display-line-numbers-mode t)
-  ;(dolist (mode '(org-mode-hook
-  ; 		term-mode-hook
-  ; 		eshell-mode-hook))
-  ;   (add-hook mode (lambda () (display-line-numbers-mode 0))))
+  (global-display-line-numbers-mode t)
+  (dolist (mode '(term-mode-hook
+                  ;org-mode-hook
+   		  eshell-mode-hook))
+     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
   ;; NEDM!
   (use-package doom-modeline
@@ -102,7 +102,9 @@
   (use-package minions
     :hook (doom-modeline-mode . minions-mode)
     :custom
-    (minions-mode-line-lighter ""))
+    ;;(minions-mode-line-lighter "")
+    (mininons-mode-line-lighter "☄")
+)
 
 #+END_SRC
 
@@ -123,6 +125,25 @@
 
 ;; use multi-term
 (use-package multi-term)
+
+(add-hook 'term-mode-hook (lambda ()
+                            (define-key term-raw-map (kbd "C-y") 'term-paste)))
+
+;; https://oremacs.com/2015/01/01/three-ansi-term-tips/
+(defun oleh-term-exec-hook ()
+  (let* ((buff (current-buffer))
+         (proc (get-buffer-process buff)))
+    (set-process-sentinel
+     proc
+     `(lambda (process event)
+        (if (string= event "finished\n")
+            (kill-buffer ,buff))))))
+
+(add-hook 'term-exec-hook 'oleh-term-exec-hook)
+
+;(add-hook 'term-mode-hook (lambda ()
+;                            (define-key term-raw-map (kbd "C-k") 'term-yank)))
+
 
 ;; follow symlinks to version-controlled files
 (setq vc-follow-symlinks t)
@@ -265,8 +286,11 @@
 (global-set-key (kbd "C-c a") 'org-agenda)
 (global-set-key (kbd "C-c c") 'org-capture)
 
+; Org agenda
+(setq org-agenda-files 
+  '("~/Dropbox/Org-Files/Tasks.org"))
+
 ;; Org-Mode Bullets
-;;(require 'org-bullets)
 (use-package org-bullets
   :hook (org-mode . (lambda () (org-bullets-mode 1))))
 
@@ -314,6 +338,13 @@
 
 #+END_SRC
 
+* Other
+#+BEGIN_SRC emacs-lisp
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CSV!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package csv-mode)
+#+END_SRC
 * Being Evil?
 #+BEGIN_SRC emacs-lisp
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
