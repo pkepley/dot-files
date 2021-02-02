@@ -21,7 +21,7 @@
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("melpa-stable" . "https://stable.melpa.org/packages/")
-			 ;;("org" . "https://orgmode.org/elpa/")
+			 ;("org" . "https://orgmode.org/elpa/")
 			 ("elpa" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
@@ -83,7 +83,7 @@
     :hook (after-init . doom-modeline-init)
     :custom-face
     (mode-line ((t (:height 0.85))))
-    (mode-line-inactive ((t (:height 0.85))))
+    ;(mode-line-inactive ((t (:height 0.85))))
     :custom
     (doom-modeline-height 15)
     (doom-modeline-bar-width 6)
@@ -111,19 +111,24 @@
 * UI
 
 #+BEGIN_SRC emacs-lisp
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UI
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; add column numbers to lower buffer
-(column-number-mode)
+  ; add column numbers to lower buffer
+  (column-number-mode)
 
-;; switch between buffers quickly
-(global-set-key (kbd "C-c C-<left>")  'windmove-left)
-(global-set-key (kbd "C-c C-<right>") 'windmove-right)
-(global-set-key (kbd "C-c C-<up>")    'windmove-up)
-(global-set-key (kbd "C-c C-<down>")  'windmove-down)
+  ; switch between buffers quickly
+  (global-set-key (kbd "C-c C-<left>")  'windmove-left)
+  (global-set-key (kbd "C-c C-<right>") 'windmove-right)
+  (global-set-key (kbd "C-c C-<up>")    'windmove-up)
+  (global-set-key (kbd "C-c C-<down>")  'windmove-down)
 
-;; use multi-term
+  ; use ls switches to make dired: list everything, sorted by name, and
+  ; human readable
+  (setq dired-listing-switches "-alh")
+#+END_SRC
+
+Now we set up some things for multi-term:
+
+#+BEGIN_SRC emacs-lisp
+; use multi-term
 (use-package multi-term)
 
 (add-hook 'term-mode-hook (lambda ()
@@ -144,7 +149,9 @@
 ;(add-hook 'term-mode-hook (lambda ()
 ;                            (define-key term-raw-map (kbd "C-k") 'term-yank)))
 
+#+END_SRC
 
+#+BEGIN_SRC emacs-lisp
 ;; follow symlinks to version-controlled files
 (setq vc-follow-symlinks t)
 
@@ -162,7 +169,9 @@
 (use-package counsel)
 
 ;; magit
-(use-package magit)
+(use-package magit
+  :config 
+  (add-hook 'after-save-hook 'magit-after-save-refresh-status t))
 
 ;; hide some mode info
 (use-package diminish)
@@ -228,20 +237,19 @@
 
 ** Python
 #+BEGIN_SRC emacs-lisp
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Set elpy
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-package elpy)
-(elpy-enable)
-(setenv "CONDA_PREFIX" (concat (getenv "HOME") "/miniconda3"))
-(setenv "WORKON_HOME"  (concat (getenv "CONDA_PREFIX") "/envs"))
-
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Set elpy
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (use-package elpy
+    :config
+    (elpy-enable)
+    (setenv "CONDA_PREFIX" (concat (getenv "HOME") "/miniconda3"))
+    (setenv "WORKON_HOME"  (concat (getenv "CONDA_PREFIX") "/envs")))
 #+END_SRC
 
 ** R
 #+BEGIN_SRC emacs-lisp
 (use-package ess)
-
 #+END_SRC
 
 ** Julia
@@ -279,45 +287,71 @@
 
 * Org-Mode
 #+BEGIN_SRC emacs-lisp
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Org Mode
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(global-set-key (kbd "C-c l") 'org-store-link)
-(global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c c") 'org-capture)
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Org Mode
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (global-set-key (kbd "C-c l") 'org-store-link)
+  (global-set-key (kbd "C-c a") 'org-agenda)
+  (global-set-key (kbd "C-c c") 'org-capture)
 
-; Org agenda
-(setq org-agenda-files 
-  '("~/Dropbox/Org-Files/Tasks.org"))
+  (use-package org
+    :config
+    ; Org agenda files
+    (setq org-agenda-files 
+      '("~/Dropbox/Org-Files/Orgzly/work-projects.org"
+	"~/Dropbox/Org-Files/personal-projects.org"
+	"~/Dropbox/Org-Files/general-life.org"
+	"~/Dropbox/Org-Files/birthdays.org"))
 
-;; Org-Mode Bullets
-(use-package org-bullets
-  :hook (org-mode . (lambda () (org-bullets-mode 1))))
+    (setq org-ellipsis " ▾"
+	  org-hide-emphasis-markers t)
 
-(setq org-ellipsis " ▾"
-      org-hide-emphasis-markers t)
+    ;; custom org-mode todo-keywords
+    (setq org-todo-keywords
+	  '((sequence "TODO(t)" "IN-PROGRESS(i)" "|" "DONE(d)")
+	    (sequence "CANCELED(c)")
+	    (sequence "BLOCKED(b)")))
 
-;; custom org-mode todo-keywords
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "IN-PROGRESS(i)" "|" "DONE(d)")
-	(sequence "CANCELED(c)")
-	(sequence "BLOCKED(b)")))
+    ;; org-agenda bits
+    (setq org-agenda-start-with-log-mode t)
+    (setq org-log-done 'time)
+    (setq org-log-into-drawer t)
 
-;; custom font-faces for org-mode todo-keywords
-(setq org-todo-keyword-faces
-      '(("TODO" . org-warning)
-	("IN-PROGRESS" . "#1589FF")
-	("BLOCKED"  . (:foreground "yellow" : weight bold))
-        ("CANCELED" . (:foreground "#778899" :weight bold))))
+    ;; custom font-faces for org-mode todo-keywords
+    (setq org-todo-keyword-faces
+	'(("TODO" . org-warning)
+	  ("IN-PROGRESS" . "#1589FF")
+	  ("BLOCKED"  . (:foreground "yellow" : weight bold))
+	  ("CANCELED" . (:foreground "#778899" :weight bold)))))
 
-;; languages that org-babel understands
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((C . t)
-   (js . t)
-   (haskell . t)
-   (R . t)))		
+  ;; Org-Mode Bullets
+  (use-package org-bullets
+     :after org
+     :hook (org-mode . org-bullets-mode))
 
+  ;; Languages that org-babel will understand
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((C . t)
+     (js . t)
+     (python . t)
+     (haskell . t)
+     (R . t)))
+
+   ;(require 'color)
+#+END_SRC
+
+The following block will make code block background colors darker.
+#+BEGIN_SRC emacs-lisp
+   (set-face-attribute 'org-block nil :background
+                       (color-darken-name
+                       (face-attribute 'default :background) 3))
+
+#+END_SRC
+
+Variable font?
+#+BEGIN_SRC emacs-lisp
+(add-hook 'org-mode-hook 'variable-pitch-mode)
 #+END_SRC
 
 ** Org-Chef
