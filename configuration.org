@@ -103,8 +103,7 @@
     :hook (doom-modeline-mode . minions-mode)
     :custom
     ;;(minions-mode-line-lighter "")
-    (mininons-mode-line-lighter "☄")
-)
+    (mininons-mode-line-lighter "☄"))
 
 #+END_SRC
 
@@ -325,9 +324,32 @@ Now we set up some things for multi-term:
 	  ("CANCELED" . (:foreground "#778899" :weight bold)))))
 
   ;; Org-Mode Bullets
-  (use-package org-bullets
-     :after org
-     :hook (org-mode . org-bullets-mode))
+  ;; (use-package org-bullets
+  ;;    :after org
+  ;;    :hook (org-mode . org-bullets-mode))
+
+  (use-package org-superstar
+    :after org
+    :hook (org-mode . org-superstar-mode)
+    :custom
+    ;(org-superstar-remove-leading-stars t)
+    (org-hide-leading-stars nil)
+    (org-superstar-leading-bullet ?\s)
+    (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :weight 'regular :height (cdr face)))
+
+  ;; Make sure org-indent face is available
+  (require 'org-indent)
+  (org-indent-mode)
 
   ;; Languages that org-babel will understand
   (org-babel-do-load-languages
@@ -338,20 +360,19 @@ Now we set up some things for multi-term:
      (haskell . t)
      (R . t)))
 
-   ;(require 'color)
+
 #+END_SRC
 
 The following block will make code block background colors darker.
 #+BEGIN_SRC emacs-lisp
-   (set-face-attribute 'org-block nil :background
-                       (color-darken-name
-                       (face-attribute 'default :background) 3))
-
+  (set-face-attribute 'org-block nil :background
+                      (color-darken-name
+                      (face-attribute 'default :background) 3))
 #+END_SRC
 
-Variable font?
+Variable font. I don't like it!
 #+BEGIN_SRC emacs-lisp
-(add-hook 'org-mode-hook 'variable-pitch-mode)
+;(add-hook 'org-mode-hook 'variable-pitch-mode)
 #+END_SRC
 
 ** Org-Chef
