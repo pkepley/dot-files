@@ -16,12 +16,11 @@
 
 * Package Management
 #+BEGIN_SRC emacs-lisp
-
 (require 'package)
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+(setq package-archives '(("org" . "https://orgmode.org/elpa/")
+                         ("melpa" . "https://melpa.org/packages/")
                          ("melpa-stable" . "https://stable.melpa.org/packages/")
-			 ;("org" . "https://orgmode.org/elpa/")
 			 ("elpa" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
@@ -43,9 +42,6 @@
 
 * A E S T H E T I C S
 #+BEGIN_SRC emacs-lisp
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; A E S T H E T I C S
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; turn off the splash
   (setq inhibit-startup-message t)
 
@@ -104,6 +100,19 @@
     :custom
     ;;(minions-mode-line-lighter "")
     (mininons-mode-line-lighter "☄"))
+
+
+;; You will most likely need to adjust this font size for your system!
+(defvar pk/default-font-size 105)
+(defvar pk/default-variable-font-size 105)
+;;
+(set-face-attribute 'default nil :font "Fira Code Retina" :height pk/default-font-size)
+
+;; Set the fixed pitch face
+(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height pk/default-font-size)
+
+;; Set the variable pitch face
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height pk/default-variable-font-size :weight 'regular)
 
 #+END_SRC
 
@@ -165,7 +174,16 @@ Now we set up some things for multi-term:
   (setq which-key-idel-delay 1))
 
 ;; counsel
-(use-package counsel)
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         ("C-M-j" . counsel-switch-buffer)
+         ("C-M-l" . counsel-imenu)
+  :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history)))
+
+;(global-set-key (kbd "C-x C-f") 'counsel-find-file)
 
 ;; magit
 (use-package magit
@@ -218,8 +236,17 @@ Now we set up some things for multi-term:
 
 #+END_SRC
 
-* Languages
-  
+* Language Support
+** LSP 
+   Following directions from [[https://www.sandeepnambiar.com/setting-up-emacs-for-c++/][https://www.sandeepnambiar.com/setting-up-emacs-for-c++/]]
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-mode :commands lsp :ensure t)
+(use-package lsp-ui :commands lsp-ui-mode :ensure t)
+(use-package company-lsp
+  :ensure t
+  :commands company-lsp
+  :config (push 'company-lsp company-backends)) ;; add company-lsp as a backend
+#+END_SRC
 ** (La)TeX
 #+BEGIN_SRC emacs-lisp
 
@@ -236,14 +263,11 @@ Now we set up some things for multi-term:
 
 ** Python
 #+BEGIN_SRC emacs-lisp
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; Set elpy
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (use-package elpy
-    :config
-    (elpy-enable)
-    (setenv "CONDA_PREFIX" (concat (getenv "HOME") "/miniconda3"))
-    (setenv "WORKON_HOME"  (concat (getenv "CONDA_PREFIX") "/envs")))
+(use-package elpy
+     :config
+     (elpy-enable)
+     (setenv "CONDA_PREFIX" (concat (getenv "HOME") "/miniconda3"))
+     (setenv "WORKON_HOME"  (concat (getenv "CONDA_PREFIX") "/envs")))
 #+END_SRC
 
 ** R
@@ -274,6 +298,20 @@ Now we set up some things for multi-term:
 
 #+END_SRC
 
+** C/C++
+   Following directions from [[https://www.sandeepnambiar.com/setting-up-emacs-for-c++/][https://www.sandeepnambiar.com/setting-up-emacs-for-c++/]]
+
+   Note: this step requies CCLS to be installed!!
+#+BEGIN_SRC emacs-lisp
+(use-package ccls
+  :ensure t
+  :config
+  (setq ccls-executable "ccls")
+  (setq lsp-prefer-flymake nil)
+  (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
+  :hook ((c-mode c++-mode objc-mode) .
+         (lambda () (require 'ccls) (lsp))))
+#+END_SRC
 ** Arduino
 #+BEGIN_SRC emacs-lisp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -294,14 +332,17 @@ Now we set up some things for multi-term:
   (global-set-key (kbd "C-c c") 'org-capture)
 
   (use-package org
+    :pin melpa-stable
     :config
-    ; Org agenda files
+    ;;Org agenda files
     (setq org-agenda-files 
       '("~/Dropbox/Org-Files/Orgzly/work-projects.org"
 	"~/Dropbox/Org-Files/personal-projects.org"
+	"~/Dropbox/Org-Files/reminders.org"
 	"~/Dropbox/Org-Files/general-life.org"
 	"~/Dropbox/Org-Files/birthdays.org"))
 
+    ;; add drop-down icon to expandable items
     (setq org-ellipsis " ▾"
 	  org-hide-emphasis-markers t)
 
@@ -321,14 +362,15 @@ Now we set up some things for multi-term:
 	'(("TODO" . org-warning)
 	  ("IN-PROGRESS" . "#1589FF")
 	  ("BLOCKED"  . (:foreground "yellow" : weight bold))
-	  ("CANCELED" . (:foreground "#778899" :weight bold)))))
+	  ("CANCELED" . (:foreground "#778899" :weight bold))))
+
+    ;; make latex in org legible on my high DPI screen
+    (setq org-format-latex-oprtions 
+         (plist-put org-format-latex-options :scale 2.5)))
 
   ;; Org-Mode Bullets
-  ;; (use-package org-bullets
-  ;;    :after org
-  ;;    :hook (org-mode . org-bullets-mode))
-
   (use-package org-superstar
+    :pin melpa-stable
     :after org
     :hook (org-mode . org-superstar-mode)
     :custom
@@ -337,14 +379,15 @@ Now we set up some things for multi-term:
     (org-superstar-leading-bullet ?\s)
     (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●")))
 
+  ;; face size for org headings
   (dolist (face '((org-level-1 . 1.2)
-                  (org-level-2 . 1.1)
-                  (org-level-3 . 1.05)
-                  (org-level-4 . 1.0)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
+		  (org-level-2 . 1.1)
+		  (org-level-3 . 1.05)
+		  (org-level-4 . 1.0)
+		  (org-level-5 . 1.1)
+		  (org-level-6 . 1.1)
+		  (org-level-7 . 1.1)
+		  (org-level-8 . 1.1)))
     (set-face-attribute (car face) nil :weight 'regular :height (cdr face)))
 
   ;; Make sure org-indent face is available
@@ -360,7 +403,6 @@ Now we set up some things for multi-term:
      (haskell . t)
      (R . t)))
 
-
 #+END_SRC
 
 The following block will make code block background colors darker.
@@ -370,13 +412,8 @@ The following block will make code block background colors darker.
                       (face-attribute 'default :background) 3))
 #+END_SRC
 
-Variable font. I don't like it!
-#+BEGIN_SRC emacs-lisp
-;(add-hook 'org-mode-hook 'variable-pitch-mode)
-#+END_SRC
-
 ** Org-Chef
-#+BEGIN_SRC emacs-lisp
+BEGIN_SRC emacs-lisp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Org Chef
@@ -391,20 +428,22 @@ Variable font. I don't like it!
         ("m" "Manual Cookbook" entry (file "~/org/cookbook.org")
          "* %^{Recipe title: }\n  :PROPERTIES:\n  :source-url:\n  :servings:\n  :prep-time:\n  :cook-time:\n  :ready-in:\n :author:\n :END:\n** Description\n   %?\n\n** Ingredients\n   %?\n** Directions\n\n")))
 
-#+END_SRC
+END_SRC
 
 * Other
+Glorious CSV mode
 #+BEGIN_SRC emacs-lisp
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; CSV!
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package csv-mode)
+#+END_SRC
+
+No littering (with tilde files at least):
+#+BEGIN_SRC emacs-lisp
+(let ((paul-backup-dir "~/.emacs.d/file-backups"))
+  (make-directory paul-backup-dir :parents)
+  (setq backup-directory-alist '(("." . "~/.emacs.d/file-backups"))))
 #+END_SRC
 * Being Evil?
 #+BEGIN_SRC emacs-lisp
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; Use evil mode ?
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;(use-package evil)
-  ;;(evil-mode 1)
+  (use-package evil)
+  ;(evil-mode 1)
 #+END_SRC
